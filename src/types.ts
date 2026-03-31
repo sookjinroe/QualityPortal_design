@@ -1,8 +1,8 @@
 
-export type Page = 'dashboard' | 'ai-agent' | 'risk-analysis' | 'ai-chat';
+export type Page = 'dashboard' | 'ai-agent' | 'ai-chat';
 
 export interface SidebarItemProps {
-  icon: any;
+  icon: any; // Can be a Lucide icon component or a string URL
   label: string;
   badge?: string;
   active?: boolean;
@@ -25,8 +25,6 @@ export interface MetricCardProps {
     color: string;
     type: 'badge' | 'dot';
   };
-  sparklineData?: { value: number }[];
-  benchmark?: number;
   onClick?: () => void;
 }
 

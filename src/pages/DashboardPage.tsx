@@ -29,13 +29,8 @@ import {
   INCIDENTS_DATA, 
   ERROR_RATE_TREND,
   PR_DETAILS_DATA,
+  DORA_TREND_DATA,
 } from '../constants';
-
-// DORA Sparklines
-const deploymentTrend = [{ value: 12 }, { value: 14 }, { value: 18 }, { value: 16 }, { value: 20 }, { value: 18 }, { value: 22 }, { value: 21 }];
-const leadTimeTrend = [{ value: 15 }, { value: 16 }, { value: 14 }, { value: 13 }, { value: 12 }, { value: 11 }, { value: 10 }, { value: 10.5 }];
-const failureRateTrend = [{ value: 5 }, { value: 4.5 }, { value: 4.8 }, { value: 4.2 }, { value: 3.5 }, { value: 3.0 }, { value: 2.5 }, { value: 2.2 }];
-const recoveryTimeTrend = [{ value: 12 }, { value: 11.5 }, { value: 10.8 }, { value: 10.2 }, { value: 9.5 }, { value: 8.8 }, { value: 8.2 }, { value: 8.0 }];
 
 // Dev Flow Sparklines
 const prCycleTimeSparkline = [
@@ -105,12 +100,13 @@ export const DashboardPage = () => {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative space-y-8 pb-12"
-    >
-      {/* Top Context Bar (Fixed) */}
+    <div className="flex-1 relative">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-[1280px] mx-auto w-full space-y-8 pb-12"
+      >
+        {/* Top Context Bar (Fixed) */}
       <div className="sticky top-0 z-20 flex items-center justify-between bg-card-bg/95 backdrop-blur-sm border border-border-base rounded-xl px-6 py-3 shadow-md mb-8">
         <div className="flex items-center gap-8">
           <div className="flex flex-col">
@@ -154,8 +150,6 @@ export const DashboardPage = () => {
             status={{ label: 'High', color: 'var(--success)', type: 'badge' }} 
             description="프로덕션 배포 횟수입니다. Elite 등급은 일 1회 이상 배포를 의미합니다."
             source="Jenkins"
-            sparklineData={deploymentTrend}
-            benchmark={15}
           />
           <StatCard 
             label="변경 리드타임" 
@@ -165,8 +159,6 @@ export const DashboardPage = () => {
             status={{ label: 'Medium', color: 'var(--warning)', type: 'badge' }} 
             description="커밋부터 배포까지 소요 시간입니다. Elite 등급은 1시간 미만입니다."
             source="Bitbucket"
-            sparklineData={leadTimeTrend}
-            benchmark={12}
           />
           <StatCard 
             label="변경 실패율" 
@@ -176,8 +168,6 @@ export const DashboardPage = () => {
             status={{ label: 'Elite', color: 'var(--success)', type: 'badge' }} 
             description="배포 후 장애/롤백 비율입니다. Elite 등급은 0~15% 범위를 유지합니다."
             source="Jenkins"
-            sparklineData={failureRateTrend}
-            benchmark={4}
           />
           <StatCard 
             label="복구 시간" 
@@ -187,9 +177,60 @@ export const DashboardPage = () => {
             status={{ label: 'High', color: 'var(--success)', type: 'badge' }} 
             description="장애 감지부터 해소까지의 시간입니다. Elite 등급은 1시간 미만입니다."
             source="PagerDuty"
-            sparklineData={recoveryTimeTrend}
-            benchmark={10}
           />
+        </div>
+
+        {/* DORA Trend Charts */}
+        <div className="card-base p-6 grid grid-cols-4 gap-6">
+          {[
+            { key: 'deployment', label: '배포빈도 추세', unit: '회/주', benchmark: 15 },
+            { key: 'leadTime', label: '리드타임 추세', unit: '일', benchmark: 12 },
+            { key: 'failureRate', label: '실패율 추세', unit: '%', benchmark: 4 },
+            { key: 'recoveryTime', label: '복구시간 추세', unit: 'h', benchmark: 10 }
+          ].map((chart) => (
+            <div key={chart.key} className="flex flex-col h-[180px]">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[12px] font-bold text-text-secondary">{chart.label}</span>
+                <span className="text-[10px] text-text-muted font-medium">{chart.unit}</span>
+              </div>
+              <div className="flex-1 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={DORA_TREND_DATA} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-base)" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fill: 'var(--text-muted)' }} 
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
+                      domain={['auto', 'auto']}
+                    />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '11px' }}
+                    />
+                    <ReferenceLine 
+                      y={chart.benchmark} 
+                      stroke="var(--danger)" 
+                      strokeDasharray="3 3" 
+                      label={{ value: 'High', position: 'insideBottomRight', fill: 'var(--danger)', fontSize: 9, fontWeight: 'bold' }} 
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey={chart.key} 
+                      stroke="var(--brand-base)" 
+                      strokeWidth={2} 
+                      dot={{ r: 3, fill: 'var(--brand-base)', strokeWidth: 0 }}
+                      activeDot={{ r: 5, strokeWidth: 0 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -212,7 +253,6 @@ export const DashboardPage = () => {
             value="40.3" 
             unit="h" 
             trend={{ value: '+12%', direction: 'up' }} 
-            sparklineData={prCycleTimeSparkline} 
             description="PR 생성부터 머지까지 걸리는 평균 시간입니다. 리뷰 속도와 밀접한 관련이 있습니다."
             onClick={() => openDetail("PR 사이클타임 상세", "최근 7일간 머지된 PR의 소요 시간 목록입니다.", PR_DETAILS_DATA, "Bitbucket에서 전체 목록 보기")}
           />
@@ -221,7 +261,6 @@ export const DashboardPage = () => {
             value="18.5" 
             unit="h" 
             trend={{ value: '-5%', direction: 'down' }} 
-            sparklineData={reviewWaitTimeSparkline} 
             description="PR 생성 후 첫 리뷰가 달리기까지 걸리는 시간입니다. 병목 구간을 찾는 핵심 지표입니다."
           />
           <StatCard 
@@ -229,7 +268,6 @@ export const DashboardPage = () => {
             value="4.2" 
             unit="일" 
             trend={{ value: '+2%', direction: 'up' }} 
-            sparklineData={issueDwellTimeSparkline} 
             description="하나의 일감이 특정 상태(In Progress 등)에 머물러 있는 평균 기간입니다."
           />
           <StatCard 
@@ -237,7 +275,6 @@ export const DashboardPage = () => {
             value="83" 
             unit="%" 
             trend={{ value: '+8%', direction: 'up' }} 
-            sparklineData={sprintCompletionSparkline} 
             description="계획된 스토리 포인트 대비 실제 완료된 포인트의 비율입니다."
           />
         </div>
@@ -436,6 +473,7 @@ export const DashboardPage = () => {
           className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[90]"
         />
       )}
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };

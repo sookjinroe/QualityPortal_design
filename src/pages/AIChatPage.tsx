@@ -5,9 +5,10 @@ import { Page } from '../types';
 
 interface AIChatPageProps {
   onClose: () => void;
+  context?: string;
 }
 
-export const AIChatPage = ({ onClose }: AIChatPageProps) => {
+export const AIChatPage = ({ onClose, context }: AIChatPageProps) => {
   return (
     <motion.div 
       key="ai-chat"
@@ -35,6 +36,15 @@ export const AIChatPage = ({ onClose }: AIChatPageProps) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
+          {context === 'ai-agent' && (
+            <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-3 mb-2">
+              <div className="text-[11px] font-bold text-[#1E40AF] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <ShieldCheck size={12} /> 브리핑 컨텍스트 포함됨
+              </div>
+              <p className="text-[12px] text-[#1E40AF]">현재 보고 계신 <strong>Sprint 4 정기 브리핑</strong> 내용을 기반으로 질문하실 수 있습니다.</p>
+            </div>
+          )}
+
           {/* User Message */}
           <div className="flex justify-end">
             <div className="bg-[#1D4ED8] text-white rounded-[14px_14px_3px_14px] px-3.5 py-2.5 max-w-[72%] text-[13px] leading-relaxed">

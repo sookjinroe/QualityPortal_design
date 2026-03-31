@@ -67,10 +67,10 @@ export const Tooltip = ({ content }: { content: string }) => (
   </div>
 );
 
-export const StatCard = ({ label, value, unit, trend, status, sparklineData, benchmark, description, onClick, source }: MetricCardProps & { source?: string }) => (
+export const StatCard = ({ label, value, unit, trend, status, description, onClick, source }: MetricCardProps & { source?: string }) => (
   <div 
     onClick={onClick}
-    className={`card-base p-5 flex flex-col min-h-[160px] group relative transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-brand-base hover:shadow-md hover:-translate-y-0.5' : ''}`}
+    className={`card-base p-5 flex flex-col min-h-[110px] group relative transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-brand-base hover:shadow-md hover:-translate-y-0.5' : ''}`}
   >
     <div className="flex items-start justify-between mb-3">
       <div className="flex items-center">
@@ -92,33 +92,6 @@ export const StatCard = ({ label, value, unit, trend, status, sparklineData, ben
       <span className="text-[32px] font-bold text-text-primary font-mono tracking-tighter leading-none">{value}</span>
       {unit && <span className="text-[14px] text-text-secondary font-medium ml-0.5">{unit}</span>}
     </div>
-
-    {sparklineData && (
-      <div className="h-[40px] w-full mb-3 -mx-1">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={sparklineData}>
-            <defs>
-              <linearGradient id={`gradient-${label}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={trend?.direction === 'up' ? '#EF4444' : '#10B981'} stopOpacity={0.1}/>
-                <stop offset="95%" stopColor={trend?.direction === 'up' ? '#EF4444' : '#10B981'} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            {benchmark !== undefined && (
-              <ReferenceLine y={benchmark} stroke="var(--text-muted)" strokeDasharray="3 3" opacity={0.5} />
-            )}
-            <Area 
-              type="monotone" 
-              dataKey="value" 
-              stroke={trend?.direction === 'up' ? '#EF4444' : '#10B981'} 
-              strokeWidth={2} 
-              fillOpacity={1} 
-              fill={`url(#gradient-${label})`}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    )}
 
     <div className="flex items-center justify-between mt-auto">
       {source ? (
@@ -223,8 +196,9 @@ export const ValueStreamBar = ({ segments, onSegmentClick }: { segments: ValueSt
             </span>
             
             {segment.isBottleneck && (
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-danger text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
-                병목
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-danger text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md z-20 whitespace-nowrap flex items-center gap-1">
+                <AlertCircle size={10} strokeWidth={3} /> 병목
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-danger" />
               </div>
             )}
 

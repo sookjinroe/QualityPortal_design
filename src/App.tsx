@@ -7,8 +7,8 @@ import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { DashboardPage } from './pages/DashboardPage';
 import { AIAgentPage } from './pages/AIAgentPage';
-import { RiskAnalysisPage } from './pages/RiskAnalysisPage';
 import { AIChatPage } from './pages/AIChatPage';
+import { AIChatHistoryPage } from './pages/AIChatHistoryPage';
 import { Page } from './types';
 
 export default function App() {
@@ -23,13 +23,7 @@ export default function App() {
       <Sidebar 
         currentPage={currentPage} 
         isAiPanelOpen={isAiPanelOpen}
-        setCurrentPage={(page) => {
-          if (page === 'ai-chat') {
-            setIsAiPanelOpen(!isAiPanelOpen);
-          } else {
-            setCurrentPage(page);
-          }
-        }} 
+        setCurrentPage={setCurrentPage} 
       />
 
       {/* Main Content Area */}
@@ -40,10 +34,10 @@ export default function App() {
             <div className="text-[13px] text-text-secondary flex items-center gap-1.5">
               ERP 고도화 <ChevronRight size={14} className="text-border-strong" /> 
               <strong className="text-text-primary font-semibold">
-                {currentPage === 'ai-agent' ? 'AI 에이전트 분석 결과' : currentPage === 'risk-analysis' ? '리스크 분석' : '대시보드'}
+                {currentPage === 'ai-agent' ? 'AI 브리핑' : currentPage === 'ai-chat' ? 'AI 대화' : '대시보드'}
               </strong>
               <span className="text-[11px] text-text-muted ml-1.5">
-                {currentPage === 'ai-agent' ? '방금 전 업데이트' : currentPage === 'risk-analysis' ? 'Jira · Bitbucket · Sparrow · Jenkins 교차 분석' : '실시간 · 스프린트 4'}
+                {currentPage === 'ai-agent' ? '방금 전 업데이트' : currentPage === 'ai-chat' ? '실시간 분석' : '실시간 · 스프린트 4'}
               </span>
             </div>
             <div className="flex items-center gap-3">
@@ -64,7 +58,13 @@ export default function App() {
               )}
               <div className="w-px h-4 bg-border-base mx-1" />
               <button 
-                onClick={toggleAiPanel}
+                onClick={() => {
+                  if (currentPage === 'ai-chat') {
+                    window.dispatchEvent(new CustomEvent('start-new-chat'));
+                  } else {
+                    toggleAiPanel();
+                  }
+                }}
                 className={`text-xs font-semibold px-3.5 py-1.5 rounded-md flex items-center gap-1.5 transition-all ${isAiPanelOpen ? 'bg-brand-light text-brand-base border border-brand-light' : 'bg-brand-base text-white hover:bg-brand-dark'}`}
               >
                 <Sparkles size={14} /> AI에게 질문하기
@@ -72,22 +72,24 @@ export default function App() {
             </div>
           </header>
 
-          {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar relative">
-            <div className="max-w-[1280px] mx-auto w-full h-full">
-              <AnimatePresence mode="wait">
-                {currentPage === 'dashboard' && <DashboardPage key="dashboard" />}
-                {currentPage === 'ai-agent' && <AIAgentPage key="ai-agent" />}
-                {currentPage === 'risk-analysis' && <RiskAnalysisPage key="risk-analysis" />}
-              </AnimatePresence>
-            </div>
-          </div>
+            <AnimatePresence mode="wait">
+              {currentPage === 'dashboard' && (
+                <div className="p-6 h-full overflow-y-auto custom-scrollbar">
+                  <DashboardPage key="dashboard" />
+                </div>
+              )}
+              {currentPage === 'ai-agent' && <AIAgentPage key="ai-agent" />}
+              {currentPage === 'ai-chat' && <AIChatHistoryPage key="ai-chat" />}
+            </AnimatePresence>
         </main>
 
         {/* Global AI Side Panel */}
         <AnimatePresence>
           {isAiPanelOpen && (
-            <AIChatPage onClose={() => setIsAiPanelOpen(false)} />
+            <AIChatPage 
+              onClose={() => setIsAiPanelOpen(false)} 
+              context={currentPage}
+            />
           )}
         </AnimatePresence>
       </div>
