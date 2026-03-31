@@ -6,19 +6,47 @@ export interface SidebarItemProps {
   label: string;
   badge?: string;
   active?: boolean;
+  isExternal?: boolean;
   onClick: () => void;
 }
 
-export interface RiskBarProps {
+export interface MetricCardProps {
   label: string;
+  value: string | number;
+  unit?: string;
+  trend?: {
+    value: string;
+    direction: 'up' | 'down';
+    color?: string;
+  };
+  status?: {
+    label?: string;
+    color: string;
+    type: 'badge' | 'dot';
+  };
+  sparklineData?: { value: number }[];
+}
+
+export interface ValueStreamSegment {
+  label: string;
+  duration: string;
+  color: string;
+  isLongest?: boolean;
+}
+
+export interface IncidentEvent {
+  label: string;
+  time: string;
+  status: 'danger' | 'warning' | 'success' | 'neutral';
+}
+
+export interface RiskAnalysisBarProps {
+  label: string;
+  status: string;
+  statusColor: string;
   value: number;
   color: string;
   sub: string;
-}
-
-export interface RiskAnalysisBarProps extends RiskBarProps {
-  status: string;
-  statusColor: string;
 }
 
 export interface RecommendationItemProps {
@@ -30,24 +58,4 @@ export interface RecommendationItemProps {
   to: string;
   linkLabel: string;
   linkIcon: any;
-}
-
-export interface MetricCardProps {
-  label: string;
-  score: string;
-  status: string;
-  sub: string;
-  value: number;
-  color: string;
-}
-
-export interface ChartBar {
-  h: number;
-  c: string;
-  o?: number;
-}
-
-export interface ChartCardProps {
-  title: string;
-  bars: ChartBar[];
 }
