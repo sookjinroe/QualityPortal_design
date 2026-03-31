@@ -1,22 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Backgrounds */
+  --color-app-bg: #F8F9FB;
+  --color-card-bg: #FFFFFF;
+  --color-nested-bg: #F3F4F6;
+
+  /* Borders */
+  --color-border-base: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+
+  /* Text */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-text-inactive: #D1D5DB;
+
+  /* Semantic */
+  --color-success: #10B981;
+  --color-success-bg: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-bg: #FEF3C7;
+  --color-danger: #EF4444;
+  --color-danger-bg: #FEE2E2;
+  --color-info: #3B82F6;
+  --color-info-bg: #EFF6FF;
+
+  /* Brand */
+  --color-brand-base: #1D4ED8;
+  --color-brand-dark: #1E40AF;
+  --color-brand-light: #EFF6FF;
+
+  /* Chart Palette */
+  --color-chart-1: #3B82F6;
+  --color-chart-2: #8B5CF6;
+  --color-chart-3: #06B6D4;
+  --color-chart-4: #F59E0B;
+  --color-chart-5: #6B7280;
+}
+
+:root {
+  /* Raw CSS Variable Aliases for Recharts and SVG */
+  --app-bg: #F8F9FB;
+  --card-bg: #FFFFFF;
+  --border-base: #E5E7EB;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --brand-base: #1D4ED8;
+  --chart-1: #3B82F6;
+  --chart-2: #8B5CF6;
+  --chart-3: #06B6D4;
+  --chart-4: #F59E0B;
+  --chart-5: #6B7280;
 }
 
 @layer base {
   body {
-    @apply bg-[#F0F2F5] text-[#111827] antialiased;
+    @apply bg-app-bg text-text-primary antialiased;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+  }
+
+  /* Tabular numbers for all numeric data */
+  .font-mono, [class*="text-"][class*="font-bold"] {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-@keyframes pulse-custom {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+@layer components {
+  .card-base {
+    @apply bg-card-bg border border-border-base rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-all duration-100 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)];
+  }
+
+  .badge-base {
+    @apply rounded px-1.5 py-0.5 text-[10px] font-semibold;
+  }
+
+  .btn-primary {
+    @apply bg-brand-base text-white rounded-[6px] px-3.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-brand-dark;
+  }
+
+  .btn-secondary {
+    @apply bg-white border border-border-strong text-[#374151] rounded-[6px] px-3.5 py-1.5 text-[12px] font-medium transition-colors hover:bg-gray-50;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-text-secondary rounded-[6px] px-3.5 py-1.5 text-[12px] font-medium transition-colors hover:bg-[#F9FAFB];
+  }
 }
 
-.animate-pulse-custom {
-  animation: pulse-custom 2s infinite;
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.5; }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s infinite;
 }
 
 /* Custom scrollbar for content area */
