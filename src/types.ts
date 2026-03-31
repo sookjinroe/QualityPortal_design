@@ -14,6 +14,7 @@ export interface MetricCardProps {
   label: string;
   value: string | number;
   unit?: string;
+  description?: string; // For tooltip
   trend?: {
     value: string;
     direction: 'up' | 'down';
@@ -25,19 +26,35 @@ export interface MetricCardProps {
     type: 'badge' | 'dot';
   };
   sparklineData?: { value: number }[];
+  benchmark?: number;
+  onClick?: () => void;
+}
+
+export interface DoraBenchmark {
+  label: string;
+  value: string;
+  unit: string;
+  level: 'Elite' | 'High' | 'Medium' | 'Low';
+  score: number; // 0-100 for marker position
+  description: string;
 }
 
 export interface ValueStreamSegment {
   label: string;
-  duration: string;
+  duration: number; // in hours
+  durationLabel: string; // e.g. "2d", "40h"
   color: string;
-  isLongest?: boolean;
+  isBottleneck?: boolean;
 }
 
-export interface IncidentEvent {
-  label: string;
-  time: string;
-  status: 'danger' | 'warning' | 'success' | 'neutral';
+export interface Incident {
+  id: string;
+  occurredAt: string;
+  detectedAt: string;
+  resolvedAt: string;
+  duration: string;
+  cause: string;
+  severity: 'Critical' | 'Major' | 'Minor';
 }
 
 export interface RiskAnalysisBarProps {
@@ -58,4 +75,24 @@ export interface RecommendationItemProps {
   to: string;
   linkLabel: string;
   linkIcon: any;
+}
+
+export interface PRDetail {
+  id: string;
+  title: string;
+  author: string;
+  authorPhoto?: string;
+  cycleTime: string;
+  reviewStatus: 'reviewed' | 'unreviewed';
+  link: string;
+}
+
+export interface DetailPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  summary: string;
+  data: PRDetail[];
+  externalLink: string;
+  externalLinkLabel: string;
 }
