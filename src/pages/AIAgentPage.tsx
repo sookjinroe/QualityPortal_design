@@ -87,22 +87,21 @@ const MOCK_HISTORY: BriefingReport[] = [
     type: 'anomaly',
     title: '[감지] 무검토 머지 × 취약점 패턴 감지',
     time: '11:23',
-    summary: '3주 연속 동반 상승 · Bitbucket × Sparrow',
+    summary: '무검토 머지 75% · 배포 14일 전 · 과거 장애 패턴 일치',
     isRead: false,
     dateGroup: '오늘',
     sources: ['Bitbucket', 'Sparrow'],
     content: {
       headline: '이상 패턴 감지 · Bitbucket × Sparrow',
-      description: 'Bitbucket과 Sparrow 데이터를 교차 분석한 결과, 무검토 머지 비율 상승과 Sparrow 취약점 유입이 동반되는 패턴이 3주째 반복되고 있습니다.',
+      description: '무검토 머지 비율이 Sprint 2 이후 매주 평균 8%p씩 상승하여 이번 주 75%에 도달했습니다. 같은 기간 Sparrow 취약점 유입은 주당 1.2건에서 4.8건으로 4배 증가했습니다.',
       deliveryPrediction: { text: '', highlights: [] },
       urgentItems: [],
       diagnosis: [],
       insights: [],
       recommendations: [],
       body: [
-        '이 두 지표가 동시에 상승한 경우는 지난 6개월 데이터에서 배포 장애로 이어진 3건의 사례와 패턴이 일치합니다. 단순한 수치 이탈이 아니라 과거 장애 직전과 유사한 전조 신호입니다.',
-        'release/v1.4.0 브랜치에서 최근 2주간 머지된 PR 중 리뷰 없이 통과된 항목을 우선 확인하세요.',
-        '현 추세가 유지될 경우 다음 배포에서 Sparrow 보안 게이트 실패 가능성이 높습니다.'
+        '이 패턴은 6개월 전 INC-2023-047 장애 직전과 동일합니다. 당시에도 무검토 머지가 70%를 넘은 시점으로부터 18일 후 프로덕션 보안 사고가 발생했습니다. 현재 release/v1.4.0 배포 예정일까지 남은 기간은 14일입니다.',
+        '지금 release/v1.4.0 브랜치의 무검토 머지 항목을 전수 검토할 경우 배포가 3~5일 지연될 수 있습니다. 검토 없이 배포를 강행할 경우 보안 게이트 실패 가능성이 높습니다.',
       ],
       links: ['→ 무검토 머지 목록 확인', '→ Sparrow 최신 스캔 결과']
     }
@@ -660,13 +659,28 @@ export const AIAgentPage = () => {
                 {(selectedReport.type === 'alert' || selectedReport.type === 'anomaly') && selectedReport.content.body && (
                   <div className="space-y-4 mb-8">
                     {selectedReport.content.body.map((p, i) => (
-                      <p key={i} className="text-[14px] leading-relaxed text-text-secondary whitespace-pre-wrap">
-                        {p}
-                      </p>
+                      <div key={i}>
+                        {i === 0 && (
+                          <h3 className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">
+                            발견
+                          </h3>
+                        )}
+                        {i === 1 && <div className="border-b border-border-base my-4" />}
+                        {i === 2 && (
+                          <>
+                            <div className="border-b border-border-base my-4" />
+                            <h3 className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">
+                              결정 필요
+                            </h3>
+                          </>
+                        )}
+                        <p className="text-[14px] leading-relaxed text-text-secondary whitespace-pre-wrap">
+                          {p}
+                        </p>
+                      </div>
                     ))}
                   </div>
                 )}
-
                 {/* Links (Alert/Anomaly only) */}
                 {(selectedReport.type === 'alert' || selectedReport.type === 'anomaly') && selectedReport.content.links && (
                   <div className="flex flex-wrap gap-4 pt-4 border-t border-border-base/50">
