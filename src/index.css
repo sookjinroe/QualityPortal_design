@@ -120,6 +120,15 @@
   animation: bounce-subtle 2s ease-in-out infinite;
 }
 
+@keyframes pulse-custom {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.animate-pulse-custom {
+  animation: pulse-custom 2s ease-in-out infinite;
+}
+
 /* Custom scrollbar for content area */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;

@@ -24,7 +24,6 @@ import {
   Zap, 
   Clock3, 
   FileText, 
-  Settings, 
   ShieldCheck, 
   GitBranch, 
   X,

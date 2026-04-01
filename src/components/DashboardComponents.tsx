@@ -183,12 +183,16 @@ export const ValueStreamBar = ({ segments, onSegmentClick }: { segments: ValueSt
         </div>
       </div>
       
-      <div className="flex h-14 w-full rounded-xl overflow-hidden bg-nested-bg shadow-inner border border-border-base">
+      <div className="flex h-14 w-full rounded-xl bg-nested-bg shadow-inner border border-border-base">
         {segments.map((segment, idx) => (
           <div 
             key={idx}
             onClick={() => onSegmentClick?.(segment)}
-            className={`relative group flex items-center justify-center transition-all duration-300 hover:brightness-95 cursor-pointer ${segment.isBottleneck ? 'ring-2 ring-danger ring-inset z-10' : ''}`}
+            className={`relative group flex items-center justify-center transition-all duration-300 hover:brightness-95 cursor-pointer 
+              ${segment.isBottleneck ? 'ring-2 ring-danger ring-inset z-10' : ''}
+              ${idx === 0 ? 'rounded-l-xl' : ''}
+              ${idx === segments.length - 1 ? 'rounded-r-xl' : ''}
+            `}
             style={{ width: `${(segment.duration / totalDuration) * 100}%`, backgroundColor: segment.color }}
           >
             <span className={`text-[11px] font-bold ${segment.isBottleneck ? 'text-white' : 'text-text-primary'} drop-shadow-sm`}>

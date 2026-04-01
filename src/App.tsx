@@ -78,6 +78,17 @@ export default function App() {
     setTourStepIndex(prevIndex);
   };
 
+  const handleTourGoToStep = (index: number) => {
+    if (index < 0 || index >= TOUR_STEPS.length) return;
+    const step = TOUR_STEPS[index];
+    if (step.page !== currentPage) {
+      setIsAiPanelOpen(false);
+      setCurrentPage(step.page);
+    }
+    dispatchTourAction(step.action);
+    setTourStepIndex(index);
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-app-bg">
       {/* Left Navigation */}
@@ -102,26 +113,23 @@ export default function App() {
               </span>
             </div>
             <div className="flex items-center gap-3">
-              {currentPage === 'ai-agent' ? (
-                <>
-                  <div className="flex items-center gap-1.5 text-[11.5px] text-success font-medium">
-                    <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-custom" />
-                    실시간 모니터링 중
-                  </div>
-                  <button className="btn-secondary py-1.5">필터</button>
-                  <button className="btn-primary py-1.5">보고서 생성</button>
-                </>
-              ) : (
-                <>
-                  <button className="btn-secondary py-1.5">기간 설정</button>
-                  <button className="btn-secondary py-1.5">보고서 생성</button>
-                </>
+              {currentPage === 'ai-agent' && (
+                <div className="flex items-center gap-1.5 text-[11.5px] text-success font-medium">
+                  <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-custom" />
+                  실시간 모니터링 중
+                </div>
               )}
               <button
                 onClick={startTour}
-                className="text-[12px] font-medium px-3 py-1.5 rounded-md border border-border-base bg-white text-text-secondary hover:text-brand-base hover:border-brand-base transition-colors flex items-center gap-1.5"
+                className="text-[12px] font-medium px-3 py-1.5 rounded-md border border-border-base bg-white text-text-secondary hover:text-brand-base hover:border-brand-base transition-colors flex items-center gap-1.5 relative"
               >
                 <Compass size={13} /> 제품 투어
+                {!isTourActive && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-base opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-base border border-white"></span>
+                  </span>
+                )}
               </button>
               <div className="w-px h-4 bg-border-base mx-1" />
               <button 
@@ -168,6 +176,7 @@ export default function App() {
           currentIndex={tourStepIndex}
           onNext={handleTourNext}
           onPrev={handleTourPrev}
+          onGoToStep={handleTourGoToStep}
           onClose={() => setIsTourActive(false)}
         />
       )}
