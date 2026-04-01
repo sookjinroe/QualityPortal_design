@@ -1,21 +1,82 @@
 import { 
   Sparkles, 
-  ChevronRight, 
+  ChevronRight,
+  Compass, 
 } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { DashboardPage } from './pages/DashboardPage';
 import { AIAgentPage } from './pages/AIAgentPage';
 import { AIChatPage } from './pages/AIChatPage';
 import { AIChatHistoryPage } from './pages/AIChatHistoryPage';
 import { Page } from './types';
+import { ProductTour } from './components/ProductTour';
+import { TOUR_STEPS } from './constants/tourSteps';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStepIndex, setTourStepIndex] = useState(0);
 
   const toggleAiPanel = () => setIsAiPanelOpen(!isAiPanelOpen);
+
+  const dispatchTourAction = (action?: string) => {
+    if (!action) return;
+    setTimeout(() => {
+      switch (action) {
+        case 'select-anomaly':
+          window.dispatchEvent(new CustomEvent('tour-select-briefing', { detail: { id: '1' } }));
+          break;
+        case 'select-regular':
+          window.dispatchEvent(new CustomEvent('tour-select-briefing', { detail: { id: '2' } }));
+          break;
+        case 'open-new-chat':
+          window.dispatchEvent(new CustomEvent('start-new-chat'));
+          break;
+        case 'select-chat-item':
+          window.dispatchEvent(new CustomEvent('tour-select-chat', { detail: { id: '1' } }));
+          break;
+      }
+    }, 500);
+  };
+
+  const startTour = () => {
+    const firstStep = TOUR_STEPS[0];
+    setIsAiPanelOpen(false);
+    setTourStepIndex(0);
+    setCurrentPage(firstStep.page);
+    setIsTourActive(true);
+    dispatchTourAction(firstStep.action);
+  };
+
+  const handleTourNext = () => {
+    const nextIndex = tourStepIndex + 1;
+    if (nextIndex >= TOUR_STEPS.length) {
+      setIsTourActive(false);
+      return;
+    }
+    const nextStep = TOUR_STEPS[nextIndex];
+    if (nextStep.page !== currentPage) {
+      setIsAiPanelOpen(false);
+      setCurrentPage(nextStep.page);
+    }
+    dispatchTourAction(nextStep.action);
+    setTourStepIndex(nextIndex);
+  };
+
+  const handleTourPrev = () => {
+    const prevIndex = tourStepIndex - 1;
+    if (prevIndex < 0) return;
+    const prevStep = TOUR_STEPS[prevIndex];
+    if (prevStep.page !== currentPage) {
+      setIsAiPanelOpen(false);
+      setCurrentPage(prevStep.page);
+    }
+    dispatchTourAction(prevStep.action);
+    setTourStepIndex(prevIndex);
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-app-bg">
@@ -56,9 +117,16 @@ export default function App() {
                   <button className="btn-secondary py-1.5">보고서 생성</button>
                 </>
               )}
+              <button
+                onClick={startTour}
+                className="text-[12px] font-medium px-3 py-1.5 rounded-md border border-border-base bg-white text-text-secondary hover:text-brand-base hover:border-brand-base transition-colors flex items-center gap-1.5"
+              >
+                <Compass size={13} /> 제품 투어
+              </button>
               <div className="w-px h-4 bg-border-base mx-1" />
               <button 
                 onClick={() => {
+
                   if (currentPage === 'ai-chat') {
                     window.dispatchEvent(new CustomEvent('start-new-chat'));
                   } else {
@@ -93,6 +161,16 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
+
+      {isTourActive && (
+        <ProductTour
+          steps={TOUR_STEPS}
+          currentIndex={tourStepIndex}
+          onNext={handleTourNext}
+          onPrev={handleTourPrev}
+          onClose={() => setIsTourActive(false)}
+        />
+      )}
     </div>
   );
 }

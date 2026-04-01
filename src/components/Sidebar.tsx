@@ -63,7 +63,7 @@ export const Sidebar = ({ currentPage, isAiPanelOpen, setCurrentPage }: SidebarP
       <div className="flex-1 overflow-y-auto py-2">
         <div className="px-4 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">분석</div>
         <SidebarItem icon={LayoutDashboard} label="대시보드" onClick={() => setCurrentPage('dashboard')} active={currentPage === 'dashboard'} />
-        <SidebarItem icon={Sparkles} label="AI 브리핑" badge="9" onClick={() => setCurrentPage('ai-agent')} active={currentPage === 'ai-agent'} />
+        <SidebarItem icon={Sparkles} label="AI 브리핑" badge="2" onClick={() => setCurrentPage('ai-agent')} active={currentPage === 'ai-agent'} />
         <SidebarItem icon={MessageSquare} label="AI 대화" onClick={() => setCurrentPage('ai-chat')} active={currentPage === 'ai-chat'} />
 
         <div className="px-4 py-3 mt-4 flex items-center justify-between group/section">

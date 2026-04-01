@@ -196,9 +196,9 @@ export const ValueStreamBar = ({ segments, onSegmentClick }: { segments: ValueSt
             </span>
             
             {segment.isBottleneck && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-danger text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md z-20 whitespace-nowrap flex items-center gap-1">
-                <AlertCircle size={10} strokeWidth={3} /> 병목
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-danger" />
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-danger text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg z-20 whitespace-nowrap flex items-center gap-1 animate-bounce-subtle">
+                <AlertCircle size={12} strokeWidth={3} /> 병목 구간
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-danger" />
               </div>
             )}
 

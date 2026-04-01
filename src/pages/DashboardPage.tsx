@@ -139,8 +139,9 @@ export const DashboardPage = () => {
           sources={["Jenkins", "Bitbucket", "PagerDuty"]}
         />
 
-        <DoraBenchmarkScale benchmarks={DORA_BENCHMARKS} />
-
+        <div data-tour="dora-benchmark">
+          <DoraBenchmarkScale benchmarks={DORA_BENCHMARKS} />
+        </div>
         <div className="grid grid-cols-4 gap-4 mb-6">
           <StatCard 
             label="배포 빈도" 
@@ -243,11 +244,14 @@ export const DashboardPage = () => {
           sources={["Jira", "Bitbucket"]}
         />
         
-        <ValueStreamBar 
-          segments={VALUE_STREAM_DATA} 
-        />
+        <div data-tour="value-stream">
+          <ValueStreamBar 
+            segments={VALUE_STREAM_DATA} 
+          />
+        </div>
 
         <div className="grid grid-cols-4 gap-4 mb-6">
+          <div data-tour="pr-cycletime">
           <StatCard 
             label="PR 사이클타임" 
             value="40.3" 
@@ -256,6 +260,7 @@ export const DashboardPage = () => {
             description="PR 생성부터 머지까지 걸리는 평균 시간입니다. 리뷰 속도와 밀접한 관련이 있습니다."
             onClick={() => openDetail("PR 사이클타임 상세", "최근 7일간 머지된 PR의 소요 시간 목록입니다.", PR_DETAILS_DATA, "Bitbucket에서 전체 목록 보기")}
           />
+          </div>
           <StatCard 
             label="리뷰 대기시간" 
             value="18.5" 
@@ -326,10 +331,12 @@ export const DashboardPage = () => {
           sources={["Sparrow", "Bitbucket"]}
         />
         
-        <QualityGateStatus 
-          passed={false} 
-          reasons={["High 취약점 3건 미해소", "결제 모듈 커버리지 기준(80%) 미달"]} 
-        />
+        <div data-tour="quality-gate">
+          <QualityGateStatus 
+            passed={false} 
+            reasons={["High 취약점 3건 미해소", "결제 모듈 커버리지 기준(80%) 미달"]} 
+          />
+        </div>
         
         <div className="grid grid-cols-3 gap-6 mb-6">
           <div 
@@ -447,8 +454,9 @@ export const DashboardPage = () => {
           />
         </div>
 
-        <IntegratedErrorChart data={ERROR_RATE_TREND} />
-        
+        <div data-tour="error-chart">
+          <IntegratedErrorChart data={ERROR_RATE_TREND} />
+        </div>        
         <IncidentTable incidents={INCIDENTS_DATA} />
       </section>
 

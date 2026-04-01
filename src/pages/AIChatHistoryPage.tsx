@@ -136,6 +136,16 @@ export const AIChatHistoryPage = () => {
     return () => window.removeEventListener('start-new-chat', handleStartNewChat);
   }, []);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { id } = (e as CustomEvent).detail;
+      setIsNewChat(false);
+      setSelectedChatId(id);
+    };
+    window.addEventListener('tour-select-chat', handler);
+    return () => window.removeEventListener('tour-select-chat', handler);
+  }, []);
+
   const selectedChat = MOCK_CHAT_HISTORY.find(c => c.id === selectedChatId);
 
   const handleNewChat = () => {
@@ -244,7 +254,7 @@ const NewChatState = ({ onQuestionClick }: { onQuestionClick: (q: string) => voi
 
       <div className="w-full">
         <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-4 px-1">추천 질문</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div data-tour="chat-recommended" className="grid grid-cols-2 gap-3">
           {RECOMMENDED_QUESTIONS.map(q => (
             <button
               key={q}
@@ -294,7 +304,7 @@ const ChatContent = ({ chat }: { chat: ChatHistoryItem }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+      <div data-tour="chat-messages" className="flex-1 overflow-y-auto p-6 custom-scrollbar">
         <div className="max-w-[760px] mx-auto space-y-6">
           {chat.messages.length > 0 ? (
             chat.messages.map(msg => (

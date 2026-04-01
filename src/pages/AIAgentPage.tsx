@@ -1,8 +1,10 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Plus, 
+  Settings,
+  Check,
   Search, 
   Filter, 
   Calendar, 
@@ -100,10 +102,11 @@ const MOCK_HISTORY: BriefingReport[] = [
       insights: [],
       recommendations: [],
       body: [
+        '무검토 머지 비율이 Sprint 2 이후 매주 평균 8%p씩 상승하여 이번 주 75%에 도달했습니다. 같은 기간 Sparrow 취약점 유입은 주당 1.2건에서 4.8건으로 4배 증가했습니다.',
         '이 패턴은 6개월 전 INC-2023-047 장애 직전과 동일합니다. 당시에도 무검토 머지가 70%를 넘은 시점으로부터 18일 후 프로덕션 보안 사고가 발생했습니다. 현재 release/v1.4.0 배포 예정일까지 남은 기간은 14일입니다.',
         '지금 release/v1.4.0 브랜치의 무검토 머지 항목을 전수 검토할 경우 배포가 3~5일 지연될 수 있습니다. 검토 없이 배포를 강행할 경우 보안 게이트 실패 가능성이 높습니다.',
       ],
-      links: ['→ 무검토 머지 목록 확인', '→ Sparrow 최신 스캔 결과']
+      links: ['→ 무검토 머지 목록 확인', '→ 과거 장애 이력 비교']
     }
   },
   {
@@ -391,12 +394,19 @@ const InsightCard = ({ insight }: { insight: BriefingReport['content']['insights
   );
 };
 
-const BriefingModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose: () => void, onCreate: (data: any) => void }) => {
+const BriefingCreateModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose: () => void, onCreate: (data: any) => void }) => {
   const [scope, setScope] = useState('전체');
   const [period, setPeriod] = useState('현재 스프린트');
   const [channels, setChannels] = useState(['Slack']);
 
   if (!isOpen) return null;
+
+  const scopes = [
+    { id: '전체', label: '전체' },
+    { id: '일정 · 흐름', label: '일정 · 흐름' },
+    { id: '배포 · 품질', label: '배포 · 품질' },
+    { id: '운영 · 안정성', label: '운영 · 안정성' }
+  ];
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -413,7 +423,7 @@ const BriefingModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose
         className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
       >
         <div className="p-6 border-b border-border-base flex items-center justify-between">
-          <h3 className="text-[18px] font-bold text-text-primary">새 브리핑 생성</h3>
+          <h3 className="text-[18px] font-bold text-text-primary">브리핑 생성</h3>
           <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
             <X size={20} />
           </button>
@@ -422,14 +432,14 @@ const BriefingModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose
         <div className="p-6 space-y-6">
           <div>
             <label className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-3 block">분석 범위</label>
-            <div className="grid grid-cols-3 gap-2">
-              {['전체', '일정', '배포'].map(s => (
+            <div className="grid grid-cols-2 gap-2">
+              {scopes.map(s => (
                 <button 
-                  key={s}
-                  onClick={() => setScope(s)}
-                  className={`py-2 rounded-lg text-[13px] font-bold border transition-all ${scope === s ? 'bg-brand-base text-white border-brand-base' : 'bg-white text-text-secondary border-border-base hover:border-brand-light'}`}
+                  key={s.id}
+                  onClick={() => setScope(s.id)}
+                  className={`py-2.5 rounded-lg text-[13px] font-bold border transition-all ${scope === s.id ? 'bg-brand-base text-white border-brand-base' : 'bg-white text-text-secondary border-border-base hover:border-brand-light'}`}
                 >
-                  {s}
+                  {s.label}
                 </button>
               ))}
             </div>
@@ -445,13 +455,14 @@ const BriefingModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose
               <option>현재 스프린트</option>
               <option>지난 7일</option>
               <option>지난 14일</option>
+              <option>지난 30일</option>
             </select>
           </div>
 
           <div>
             <label className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-3 block">발송 채널</label>
             <div className="flex gap-4">
-              {['Slack', 'Email'].map(c => (
+              {['Slack', 'Email', 'Jira'].map(c => (
                 <label key={c} className="flex items-center gap-2 cursor-pointer group">
                   <input 
                     type="checkbox" 
@@ -478,7 +489,183 @@ const BriefingModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose
             }}
             className="flex-1 btn-primary py-2.5"
           >
-            브리핑 생성 시작
+            지금 생성하기
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const NotificationSettingsModal = ({ isOpen, onClose, onSave }: { isOpen: boolean, onClose: () => void, onSave: () => void }) => {
+  const [thresholds, setThresholds] = useState({
+    buildSuccess: { active: true, value: 95 },
+    vulnerability: { active: true, value: 0 },
+    cycleTime: { active: false, value: 48 }
+  });
+  const [anomalies, setAnomalies] = useState({
+    multiMetric: true,
+    pattern: true
+  });
+  const [channels, setChannels] = useState(['Slack']);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+      >
+        <div className="p-6 border-b border-border-base flex items-center justify-between">
+          <h3 className="text-[18px] font-bold text-text-primary">알림 설정</h3>
+          <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="p-6 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          {/* Threshold Alerts */}
+          <div>
+            <label className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-4 block">임계치 기반 알림 (Threshold)</label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-nested-bg/50 rounded-xl border border-border-base/50">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    checked={thresholds.buildSuccess.active}
+                    onChange={(e) => setThresholds({...thresholds, buildSuccess: {...thresholds.buildSuccess, active: e.target.checked}})}
+                    className="w-4 h-4 rounded border-border-base text-brand-base focus:ring-brand-base"
+                  />
+                  <span className="text-[14px] font-medium text-text-primary">빌드 성공률</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="number" 
+                    value={thresholds.buildSuccess.value}
+                    onChange={(e) => setThresholds({...thresholds, buildSuccess: {...thresholds.buildSuccess, value: parseInt(e.target.value) || 0}})}
+                    className="w-16 bg-white border border-border-base rounded px-2 py-1 text-[13px] font-bold text-center focus:outline-none focus:ring-1 focus:ring-brand-base"
+                  />
+                  <span className="text-[13px] text-text-secondary">% 미만 시</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-nested-bg/50 rounded-xl border border-border-base/50">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    checked={thresholds.vulnerability.active}
+                    onChange={(e) => setThresholds({...thresholds, vulnerability: {...thresholds.vulnerability, active: e.target.checked}})}
+                    className="w-4 h-4 rounded border-border-base text-brand-base focus:ring-brand-base"
+                  />
+                  <span className="text-[14px] font-medium text-text-primary">고위험 취약점</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="number" 
+                    value={thresholds.vulnerability.value}
+                    onChange={(e) => setThresholds({...thresholds, vulnerability: {...thresholds.vulnerability, value: parseInt(e.target.value) || 0}})}
+                    className="w-16 bg-white border border-border-base rounded px-2 py-1 text-[13px] font-bold text-center focus:outline-none focus:ring-1 focus:ring-brand-base"
+                  />
+                  <span className="text-[13px] text-text-secondary">건 초과 시</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-nested-bg/50 rounded-xl border border-border-base/50">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    checked={thresholds.cycleTime.active}
+                    onChange={(e) => setThresholds({...thresholds, cycleTime: {...thresholds.cycleTime, active: e.target.checked}})}
+                    className="w-4 h-4 rounded border-border-base text-brand-base focus:ring-brand-base"
+                  />
+                  <span className="text-[14px] font-medium text-text-primary">PR Cycle Time</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="number" 
+                    value={thresholds.cycleTime.value}
+                    onChange={(e) => setThresholds({...thresholds, cycleTime: {...thresholds.cycleTime, value: parseInt(e.target.value) || 0}})}
+                    className="w-16 bg-white border border-border-base rounded px-2 py-1 text-[13px] font-bold text-center focus:outline-none focus:ring-1 focus:ring-brand-base"
+                  />
+                  <span className="text-[13px] text-text-secondary">시간 초과 시</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Anomaly Detection */}
+          <div>
+            <label className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-4 block">이상 징후 감지 조건 (Anomaly)</label>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 p-4 bg-nested-bg/50 rounded-xl border border-border-base/50 cursor-pointer group">
+                <input 
+                  type="checkbox" 
+                  checked={anomalies.multiMetric}
+                  onChange={(e) => setAnomalies({...anomalies, multiMetric: e.target.checked})}
+                  className="w-4 h-4 rounded border-border-base text-brand-base focus:ring-brand-base mt-0.5"
+                />
+                <div>
+                  <div className="text-[14px] font-bold text-text-primary mb-1">복수 지표 동시 악화</div>
+                  <div className="text-[12px] text-text-secondary leading-relaxed">예: 배포 빈도가 급감하면서 동시에 에러율이 상승하는 경우</div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-4 bg-nested-bg/50 rounded-xl border border-border-base/50 cursor-pointer group">
+                <input 
+                  type="checkbox" 
+                  checked={anomalies.pattern}
+                  onChange={(e) => setAnomalies({...anomalies, pattern: e.target.checked})}
+                  className="w-4 h-4 rounded border-border-base text-brand-base focus:ring-brand-base mt-0.5"
+                />
+                <div>
+                  <div className="text-[14px] font-bold text-text-primary mb-1">과거 장애 패턴과 유사한 흐름 감지</div>
+                  <div className="text-[12px] text-text-secondary leading-relaxed">과거 인시던트 발생 전의 지표 변화 패턴이 재현되는 경우</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Delivery Channel */}
+          <div>
+            <label className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-4 block">발송 채널</label>
+            <div className="flex gap-6">
+              {['Slack', 'Email', 'Teams'].map(c => (
+                <label key={c} className="flex items-center gap-2 cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    checked={channels.includes(c)}
+                    onChange={(e) => {
+                      if (e.target.checked) setChannels([...channels, c]);
+                      else setChannels(channels.filter(item => item !== c));
+                    }}
+                    className="w-4 h-4 rounded border-border-base text-brand-base focus:ring-brand-base"
+                  />
+                  <span className="text-[14px] font-medium text-text-secondary group-hover:text-text-primary transition-colors">{c}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-nested-bg/30 border-t border-border-base flex gap-3">
+          <button onClick={onClose} className="flex-1 btn-secondary py-2.5">취소</button>
+          <button 
+            onClick={() => {
+              onSave();
+              onClose();
+            }}
+            className="flex-1 btn-primary py-2.5"
+          >
+            저장
           </button>
         </div>
       </motion.div>
@@ -488,8 +675,20 @@ const BriefingModal = ({ isOpen, onClose, onCreate }: { isOpen: boolean, onClose
 
 export const AIAgentPage = () => {
   const [selectedId, setSelectedId] = useState('1');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const [history, setHistory] = useState(MOCK_HISTORY);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { id } = (e as CustomEvent).detail;
+      setSelectedId(id);
+      setHistory(prev => prev.map(r => r.id === id ? { ...r, isRead: true } : r));
+    };
+    window.addEventListener('tour-select-briefing', handler);
+    return () => window.removeEventListener('tour-select-briefing', handler);
+  }, []);
 
   const selectedReport = useMemo(() => 
     history.find(r => r.id === selectedId) || history[0], 
@@ -511,13 +710,19 @@ export const AIAgentPage = () => {
   return (
     <div className="flex h-full w-full overflow-hidden bg-app-bg">
       {/* Left: History Panel */}
-      <div className="w-[280px] border-r border-border-base flex flex-col bg-white shrink-0">
-        <div className="p-4 border-b border-border-base">
+      <div data-tour="briefing-history" className="w-[280px] border-r border-border-base flex flex-col bg-white shrink-0">
+        <div className="p-4 border-b border-border-base flex gap-2">
           <button 
-            onClick={() => setIsModalOpen(true)}
-            className="w-full bg-brand-base text-white rounded-lg py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-all shadow-sm"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex-1 bg-brand-base text-white rounded-lg py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-all shadow-sm"
           >
-            <Plus size={16} /> 새 브리핑 생성
+            <Plus size={16} /> 브리핑 생성
+          </button>
+          <button 
+            onClick={() => setIsSettingsModalOpen(true)}
+            className="flex-1 btn-secondary py-2.5 text-[13px] font-bold flex items-center justify-center gap-2"
+          >
+            <Settings size={16} /> 알림 설정
           </button>
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -574,7 +779,7 @@ export const AIAgentPage = () => {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-          <div className={`${selectedReport.type === 'regular' ? 'max-w-[840px]' : 'max-w-[600px]'} mx-auto space-y-10 pb-20`}>
+          <div data-tour="briefing-body" className={`${selectedReport.type === 'regular' ? 'max-w-[840px]' : 'max-w-[600px]'} mx-auto space-y-10 pb-20`}>
             
             {/* Block 1: Headline Banner */}
             <motion.div 
@@ -802,14 +1007,41 @@ export const AIAgentPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modals */}
       <AnimatePresence>
-        {isModalOpen && (
-          <BriefingModal 
-            isOpen={isModalOpen} 
-            onClose={() => setIsModalOpen(false)} 
+        {isCreateModalOpen && (
+          <BriefingCreateModal 
+            isOpen={isCreateModalOpen} 
+            onClose={() => setIsCreateModalOpen(false)} 
             onCreate={handleCreateBriefing}
           />
+        )}
+        {isSettingsModalOpen && (
+          <NotificationSettingsModal 
+            isOpen={isSettingsModalOpen} 
+            onClose={() => setIsSettingsModalOpen(false)} 
+            onSave={() => {
+              setShowToast(true);
+              setTimeout(() => setShowToast(false), 3000);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[300] bg-text-primary text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3"
+          >
+            <div className="w-5 h-5 rounded-full bg-success flex items-center justify-center">
+              <Check size={12} className="text-white" />
+            </div>
+            <span className="text-[14px] font-bold">알림 설정이 저장되었습니다.</span>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
