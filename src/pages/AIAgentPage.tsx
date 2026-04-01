@@ -87,7 +87,7 @@ const MOCK_HISTORY: BriefingReport[] = [
   {
     id: '1',
     type: 'anomaly',
-    title: '[감지] 무검토 머지 × 취약점 패턴 감지',
+    title: '[감지] 코드 리뷰 미이행 및 보안 취약점 유입 패턴 감지',
     time: '11:23',
     summary: '무검토 머지 75% · 배포 14일 전 · 과거 장애 패턴 일치',
     isRead: false,

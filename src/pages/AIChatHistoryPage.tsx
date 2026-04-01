@@ -44,20 +44,41 @@ const MOCK_CHAT_HISTORY: ChatHistoryItem[] = [
     time: '14:32',
     dateGroup: '오늘',
     messages: [
-      {
-        id: 'm1',
-        role: 'user',
-        content: '지난 3개 스프린트 동안 코드 품질이 왜 계속 나빠지고 있어?',
-        timestamp: '14:31'
-      },
-      {
-        id: 'm2',
-        role: 'assistant',
-        content: 'Bitbucket × Sparrow × Jira 교차 분석 결과입니다.\n\n! 스프린트별 취약점 추이: S2(2건) → S3(5건) → S4(8건)로 급증\n! 티켓 없는 커밋 비율: S2(12%) → S4(38%)로 동반 상승\n\n분석 결과, 리뷰 없는 머지가 S2부터 증가하기 시작했고, 같은 시점부터 취약점 유입이 가속된 것으로 확인되었습니다.',
-        timestamp: '14:32',
-        type: 'analysis'
-      }
-    ]
+          {
+            id: 'm1',
+            role: 'user',
+            content: '지난 3개 스프린트 동안 코드 품질이 왜 계속 나빠지고 있어?',
+            timestamp: '14:31'
+          },
+          {
+            id: 'm2',
+            role: 'assistant',
+            content: 'Bitbucket × Sparrow × Jira 교차 분석 결과입니다.\n\n! 스프린트별 취약점 추이: S2(2건) → S3(5건) → S4(8건)로 급증\n! 티켓 없는 커밋 비율: S2(12%) → S4(38%)로 동반 상승\n\n분석 결과, 리뷰 없는 머지가 S2부터 증가하기 시작했고, 같은 시점부터 취약점 유입이 가속된 것으로 확인되었습니다.',
+            timestamp: '14:32',
+            type: 'analysis'
+          },
+          // --- 두 번째 대화에서 합쳐진 부분 ---
+          {
+            id: 'm3',
+            role: 'user',
+            content: '방금 대화한 내용들 다 포함해서 이번 스프린트 결과 보고서 작성해줘.',
+            timestamp: '14:38'
+          },
+          {
+            id: 'm4',
+            role: 'assistant',
+            content: '스프린트 4 결과를 기반으로 보고서를 생성했습니다.',
+            timestamp: '14:40',
+            type: 'report',
+            data: {
+              title: 'ERP 고도화 · 스프린트 4 결과 보고서',
+              completion: '47% (계획 대비 -12%p)',
+              risk: '7.8 / 10 (위험)',
+              findings: '프로세스 위반 및 취약점 유입 확인',
+              recommendation: '리뷰 정책 강제화 및 기술 부채 해소'
+            }
+          }
+        ]
   },
   {
     id: '2',

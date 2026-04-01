@@ -39,7 +39,7 @@ export default function App() {
           window.dispatchEvent(new CustomEvent('tour-select-chat', { detail: { id: '1' } }));
           break;
       }
-    }, 500);
+    }, 600);
   };
 
   const startTour = () => {

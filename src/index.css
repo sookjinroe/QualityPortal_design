@@ -134,3 +134,15 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #D1D5DB;
 }
+/* TO-BE (파일 하단에 추가) */
+@layer components {
+  /* 하이라이트 이동 시 부드러운 가속도 적용 */
+  svg mask motion.rect {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 투어 중일 때 메인 컨텐츠의 스크롤을 방해하지 않도록 설정 */
+  body:has(.fixed.z-\[500\]) {
+    user-select: none;
+  }
+}
